@@ -1,0 +1,58 @@
+@startuml
+
+abstract class Langage {
+  #elements
+  +toCode()
+}
+
+abstract class Relation {
+  +source
+  +destination
+  +cardinaliteSource
+  +cardinaliteDestination
+}
+
+class Specialisation {
+
+}
+class Association {}
+class Agregation {}
+class Composition {}
+
+class Classe {
+  +int id
+  +str nom
+  +toCode()
+}
+
+class Methode {
+  +str accessSpecifier
+  +str parameters[]
+  +str returnType
+  +str returnValue
+}
+
+class Attribut {
+  str accessSpecifier
+  str type
+  str nom
+}
+
+class Interface {
+  +Methode methodes[]
+}
+
+Attribut "*" --* "1" Classe : < possède
+Methode "*" --* "1" Classe : < possède
+Interface "*" --o "*" Classe : implémente <
+Classe "*" --> "1" Classe : Spécialise
+
+Relation <|-- Specialisation
+Relation <|-- Association
+Relation <|-- Agregation
+Relation <|-- Composition
+
+Langage o-- Relation
+Langage o-- Classe
+
+@enduml
