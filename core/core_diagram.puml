@@ -1,58 +1,65 @@
 @startuml
 
-abstract class Langage {
+abstract class Language {
   #elements
   +toCode()
 }
 
 abstract class Relation {
-  +source
-  +destination
-  +cardinaliteSource
-  +cardinaliteDestination
+  +Class source
+  +Class destination
+  +str sourceCardinality
+  +str destinationCardinality
 }
 
-class Specialisation {
+abstract class Extension {
 
 }
-class Association {}
-class Agregation {}
-class Composition {}
+abstract class Dependency {}
+abstract class Agregation {}
+abstract class Composition {}
 
-class Classe {
+abstract class Class {
   +int id
-  +str nom
+  +str name
+  +addAttribute(Attribute)
+  +addMethod(Method)
   +toCode()
 }
 
-class Methode {
+abstract class Method {
+  +str name
   +str accessSpecifier
   +str parameters[]
   +str returnType
   +str returnValue
+  +toCode()
 }
 
-class Attribut {
+abstract class Attribute {
   str accessSpecifier
   str type
-  str nom
+  str name
+  +toCode()
 }
 
-class Interface {
-  +Methode methodes[]
+abstract class Interface {
 }
 
-Attribut "*" --* "1" Classe : < possède
-Methode "*" --* "1" Classe : < possède
-Interface "*" --o "*" Classe : implémente <
-Classe "*" --> "1" Classe : Spécialise
+Interface --|> Class
 
-Relation <|-- Specialisation
-Relation <|-- Association
+Attribute "*" --* "1" Class : < possède
+Method "*" --* "1" Class : < possède
+Interface "*" --o "*" Class : implémente <
+Class "*" --> "1" Class : Spécialise
+
+Relation <|-- Extension
+Relation <|-- Dependency
 Relation <|-- Agregation
 Relation <|-- Composition
 
-Langage o-- Relation
-Langage o-- Classe
+
+Language o-- Relation
+Language o-- Class
 
 @enduml
