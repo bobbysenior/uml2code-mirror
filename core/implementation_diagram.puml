@@ -1,0 +1,113 @@
+@startuml
+
+abstract class Language {
+  - elements: List
+  + setElements(elements: List): void
+  + abstract toCode(): String
+}
+
+abstract class Relation {
+  - source: Class
+  - destination: Class
+  - sourceCardinality: String
+  - destinationCardinality: String
+  
+  + setSource(source: Class): void
+  + setDestination(destination: Class): void
+  + setSourceCardinality(cap: String): void
+  + setDestinationCardinality(cap: String): void
+  + abstract toCode(): String
+}
+
+abstract class Extension extends Relation {}
+abstract class Dependency extends Relation {}
+abstract class Agregation extends Relation {}
+abstract class Composition extends Relation {}
+
+abstract class Class {
+  - id: int
+  - name: String
+  - isAbstract: boolean
+  
+  + setId(id: int): void
+  + setName(name: String): void
+  + setAbstract(isAbstract: boolean): void
+  + addAttribute(attr: Attribute): void
+  + addMethod(meth: Method): void
+  + toCode(): String
+}
+
+abstract class Method {
+  - name: String
+  - visibility: accessSpecifier
+  - parameters: String[]
+  - returnType: String
+  
+  + setName(name: String): void
+  + setVisibility(vis: accessSpecifier): void
+  + setParameters(p: String[]): void
+  + setReturnType(type: String): void
+  + toCode(): String
+}
+
+abstract class Attribute {
+  - name: String
+  - type: String
+  - visibility: accessSpecifier
+  
+  + setName(name: String): void
+  + setType(type: String): void
+  + setVisibility(vis: accessSpecifier): void
+  + toCode(): String
+}
+
+abstract class Interface extends Class {}
+
+enum accessSpecifier {
+  PUBLIC
+  PRIVATE
+  PROTECTED
+}
+
+' Relations
+Attribute "*" --* "1" Class : possède >
+Method "*" --* "1" Class : possède >
+Interface "*" --o "*" Class : implémente <
+Class "*" --> "1" Class : spécialise >
+
+Language "1" o-- "*" Relation
+Language "1" o-- "*" Class
+
+' Classes concrètes
+class Java extends Language
+class JavaClass extends Class
+class JavaAttribute extends Attribute
+class JavaMethod extends Method
+class JavaInterface extends Interface
+class JavaDependency extends Dependency
+class JavaAgregation extends Agregation
+class JavaExtension extends Extension
+class JavaComposition extends Composition
+
+class Cpp extends Language
+class CppClass extends Class
+class CppAttribute extends Attribute
+class CppMethod extends Method
+class CppInterface extends Interface
+class CppDependency extends Dependency
+class CppAgregation extends Agregation
+class CppExtension extends Extension
+class CppComposition extends Composition
+
+class Ruby extends Language
+class RubyClass extends Class
+class RubyAttribute extends Attribute
+class RubyMethod extends Method
+class RubyInterface extends Interface
+class RubyDependency extends Dependency
+class RubyAgregation extends Agregation
+class RubyExtension extends Extension
+class RubyComposition extends Composition
+
+
+@enduml

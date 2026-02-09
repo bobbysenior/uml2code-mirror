@@ -13,3 +13,7 @@ Nous avons décidé d'implémenter les 3 langages suivants :
 Voici l'architecture que nous allons utiliser pour réaliser notre projet :
 
 ![diagramme](core/diagram.png)
+
+Architecture concrète, j'ai choisi pour exemple les langages Java, C++ et Ruby :
+
+![diagramme](core/implementation.png)
