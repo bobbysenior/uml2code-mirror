@@ -23,3 +23,5 @@ class Cpp(Langage):
 choice = input()
 if choice == "CPP":
     langage = Cpp
+
+# test
