@@ -10,6 +10,7 @@ abstract class Relation {
   +Class destination
   +str sourceCardinality
   +str destinationCardinality
+  +toCode()
 }
 
 abstract class Extension {
@@ -20,8 +21,11 @@ abstract class Agregation {}
 abstract class Composition {}
 
 abstract class Class {
-  +int id
-  +str name
+  -int id
+  -str name
+  -bool abstract
+  +setName(str)
+  +setAbstract(bool)
   +addAttribute(Attribute)
   +addMethod(Method)
   +toCode()
@@ -29,21 +33,26 @@ abstract class Class {
 
 abstract class Method {
   +str name
-  +str accessSpecifier
+  +accessSpecifier
   +str parameters[]
   +str returnType
-  +str returnValue
   +toCode()
 }
 
 abstract class Attribute {
-  str accessSpecifier
-  str type
-  str name
+  +accessSpecifier
+  +str type
+  +str name
   +toCode()
 }
 
 abstract class Interface {
+}
+
+enum accessSpecifier {
+  PUBLIC
+  PRIVATE
+  PROTECTED
 }
 
 Interface --|> Class
