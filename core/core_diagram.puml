@@ -1,53 +1,67 @@
 @startuml
 
 abstract class Language {
-  #elements
-  +toCode()
+  - elements: List
+  + setElements(elements: List): void
+  + abstract toCode(): String
 }
 
 abstract class Relation {
-  +Class source
-  +Class destination
-  +str sourceCardinality
-  +str destinationCardinality
-  +toCode()
+  - source: Class
+  - destination: Class
+  - sourceCardinality: String
+  - destinationCardinality: String
+  
+  + setSource(source: Class): void
+  + setDestination(destination: Class): void
+  + setSourceCardinality(cap: String): void
+  + setDestinationCardinality(cap: String): void
+  + abstract toCode(): String
 }
 
-abstract class Extension {
-
-}
-abstract class Dependency {}
-abstract class Agregation {}
-abstract class Composition {}
+abstract class Extension extends Relation {}
+abstract class Dependency extends Relation {}
+abstract class Agregation extends Relation {}
+abstract class Composition extends Relation {}
 
 abstract class Class {
-  -int id
-  -str name
-  -bool abstract
-  +setName(str)
-  +setAbstract(bool)
-  +addAttribute(Attribute)
-  +addMethod(Method)
-  +toCode()
+  - id: int
+  - name: String
+  - isAbstract: boolean
+  
+  + setId(id: int): void
+  + setName(name: String): void
+  + setAbstract(isAbstract: boolean): void
+  + addAttribute(attr: Attribute): void
+  + addMethod(meth: Method): void
+  + toCode(): String
 }
 
 abstract class Method {
-  +str name
-  +accessSpecifier
-  +str parameters[]
-  +str returnType
-  +toCode()
+  - name: String
+  - visibility: accessSpecifier
+  - parameters: String[]
+  - returnType: String
+  
+  + setName(name: String): void
+  + setVisibility(vis: accessSpecifier): void
+  + setParameters(p: String[]): void
+  + setReturnType(type: String): void
+  + toCode(): String
 }
 
 abstract class Attribute {
-  +accessSpecifier
-  +str type
-  +str name
-  +toCode()
+  - name: String
+  - type: String
+  - visibility: accessSpecifier
+  
+  + setName(name: String): void
+  + setType(type: String): void
+  + setVisibility(vis: accessSpecifier): void
+  + toCode(): String
 }
 
-abstract class Interface {
-}
+abstract class Interface extends Class {}
 
 enum accessSpecifier {
   PUBLIC
@@ -55,20 +69,13 @@ enum accessSpecifier {
   PROTECTED
 }
 
-Interface --|> Class
-
-Attribute "*" --* "1" Class : < possède
-Method "*" --* "1" Class : < possède
+' Relations
+Attribute "*" --* "1" Class : possède >
+Method "*" --* "1" Class : possède >
 Interface "*" --o "*" Class : implémente <
-Class "*" --> "1" Class : Spécialise
+Class "*" --> "1" Class : spécialise >
 
-Relation <|-- Extension
-Relation <|-- Dependency
-Relation <|-- Agregation
-Relation <|-- Composition
-
-
-Language o-- Relation
-Language o-- Class
+Language "1" o-- "*" Relation
+Language "1" o-- "*" Class
 
 @enduml
