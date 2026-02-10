@@ -1,107 +1,120 @@
 @startuml
-
-interface Codable {
- + toCode(): String
+' --- Paramètres esthétiques ---
+skinparam shadowing true
+skinparam roundcorner 10
+skinparam nodesep 60
+skinparam ranksep 80
+skinparam class {
+    BackgroundColor White
+    ArrowColor #263238
+    BorderColor #263238
 }
 
-abstract class ClassDiagram {
-  - elements: List
-  + setElements(elements: List): void
+package core {
 
+    interface Codable {
+        + toCode(): String
+    }
+
+    ' Regroupement des éléments structurels
+    together {
+        abstract class Class {
+            - id: int
+            - name: String
+            - isAbstract: boolean
+            + setId(id: int): void
+            + setName(name: String): void
+            + setAbstract(isAbstract: boolean): void
+            + addAttribute(attr: Attribute): void
+            + addMethod(meth: Method): void
+        }
+
+        abstract class Method {
+            - name: String
+            - visibility: accessSpecifier
+            - parameters: String[]
+            - returnType: String
+            + setName(name: String): void
+            + setVisibility(vis: accessSpecifier): void
+            + setParameters(p: String[]): void
+            + setReturnType(type: String): void
+        }
+
+        abstract class Attribute {
+            - name: String
+            - type: String
+            - visibility: accessSpecifier
+            + setName(name: String): void
+            + setType(type: String): void
+            + setVisibility(vis: accessSpecifier): void
+        }
+    }
+
+    enum accessSpecifier {
+        PUBLIC
+        PRIVATE
+        PROTECTED
+    }
+
+    abstract class ClassDiagram {
+        - elements: List
+        + setElements(elements: List): void
+    }
+
+    ' Hiérarchie des relations
+    abstract class Relation {
+        - role: String
+        - sementics: String
+        + setSource(source: Class): void
+        + setDestination(destination: Class): void
+        + setRole(role: String): void
+        + setSemantics(text: String): void
+    }
+
+    abstract class CardinalityRelation extends Relation {
+        - sourceCardinality: String
+        - destinationCardinality: String
+        + setSourceCardinality(cap: String): void
+        + setDestinationCardinality(cap: String): void
+    }
+
+    together {
+        abstract class Generalization extends Relation
+        abstract class Association extends Relation
+        abstract class Implementation extends Relation
+        abstract class Agregation extends CardinalityRelation
+        abstract class Composition extends CardinalityRelation
+    }
+
+    abstract class Note {
+        - body
+        - target
+        + setBody(text: String): void
+        + setTarget(target: Class): void
+    }
+
+    abstract class Interface extends Class
+
+    ' --- Relations et Mise en page ---
+
+    ' On force Codable en haut
+    ClassDiagram .up.|> Codable
+    Class .up.|> Codable
+    Method .up.|> Codable
+    Attribute .up.|> Codable
+    Relation .up.|> Codable
+    Note .up.|> Codable
+
+    ' Organisation interne de Class
+    Attribute "*" --* "1" Class : possède <
+    Method "*" --* "1" Class : possède <
+
+    ' Relations vers Class
+    Relation "*" *-- "1" Class : source
+    Relation "*" *-- "1" Class : destination
+
+    ClassDiagram "1" o-- "*" Class
+
+    note left of Codable : Les classes qui implémentent\ncette interface peuvent être\nconverties en code.
 }
-
-abstract class Relation {
-  - source: Class
-  - destination: Class
-  - role: String
-
-  + setSource(source: Class): void
-  + setDestination(destination: Class): void
-
-}
-
-abstract class CardinalityRelation extends Relation {
-  - sourceCardinality: String
-  - destinationCardinality: String
-  + setSourceCardinality(cap: String): void
-  + setDestinationCardinality(cap: String): void
-  
-}
-
-
-
-abstract class Generalization extends Relation {}
-abstract class Association extends Relation {}
-abstract class Agregation extends CardinalityRelation {}
-abstract class Composition extends CardinalityRelation {}
-abstract class Implementation extends Relation {}
-
-abstract class Class {
-  - id: int
-  - name: String
-  - isAbstract: boolean
-  
-  + setId(id: int): void
-  + setName(name: String): void
-  + setAbstract(isAbstract: boolean): void
-  + addAttribute(attr: Attribute): void
-  + addMethod(meth: Method): void
-
-}
-
-abstract class Method {
-  - name: String
-  - visibility: accessSpecifier
-  - parameters: String[]
-  - returnType: String
-  
-  + setName(name: String): void
-  + setVisibility(vis: accessSpecifier): void
-  + setParameters(p: String[]): void
-  + setReturnType(type: String): void
-
-}
-
-abstract class Attribute {
-  - name: String
-  - type: String
-  - visibility: accessSpecifier
-  
-  + setName(name: String): void
-  + setType(type: String): void
-  + setVisibility(vis: accessSpecifier): void
-
-}
-
-abstract class Note {
-  - body
-  
-}
-
-abstract class Interface extends Class {}
-
-enum accessSpecifier {
-  PUBLIC
-  PRIVATE
-  PROTECTED
-}
-
-' Relations
-Attribute "*" --* "1" Class : possède <
-Method "*" --* "1" Class : possède <
-
-Relation "*" --* "1" Class : source
-Relation "*" --* "1" Class : destination
-Class --o Relation : f
-
-
-ClassDiagram "*" o-- "*" Class
-
-ClassDiagram ..|> Codable
-Class ..|> Codable
-Method ..|> Codable
-Attribute ..|> Codable
-Relation ..|> Codable
-Note ..|> Codable
-
 @enduml
