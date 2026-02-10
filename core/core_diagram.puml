@@ -1,28 +1,40 @@
 @startuml
 
-abstract class Language {
+interface Codable {
+ + toCode(): String
+}
+
+abstract class ClassDiagram {
   - elements: List
   + setElements(elements: List): void
-  + abstract toCode(): String
+
 }
 
 abstract class Relation {
   - source: Class
   - destination: Class
-  - sourceCardinality: String
-  - destinationCardinality: String
-  
+  - role: String
+
   + setSource(source: Class): void
   + setDestination(destination: Class): void
-  + setSourceCardinality(cap: String): void
-  + setDestinationCardinality(cap: String): void
-  + abstract toCode(): String
+
 }
 
-abstract class Extension extends Relation {}
-abstract class Dependency extends Relation {}
-abstract class Agregation extends Relation {}
-abstract class Composition extends Relation {}
+abstract class CardinalityRelation extends Relation {
+  - sourceCardinality: String
+  - destinationCardinality: String
+  + setSourceCardinality(cap: String): void
+  + setDestinationCardinality(cap: String): void
+  
+}
+
+
+
+abstract class Generalization extends Relation {}
+abstract class Association extends Relation {}
+abstract class Agregation extends CardinalityRelation {}
+abstract class Composition extends CardinalityRelation {}
+abstract class Implementation extends Relation {}
 
 abstract class Class {
   - id: int
@@ -34,7 +46,7 @@ abstract class Class {
   + setAbstract(isAbstract: boolean): void
   + addAttribute(attr: Attribute): void
   + addMethod(meth: Method): void
-  + toCode(): String
+
 }
 
 abstract class Method {
@@ -47,7 +59,7 @@ abstract class Method {
   + setVisibility(vis: accessSpecifier): void
   + setParameters(p: String[]): void
   + setReturnType(type: String): void
-  + toCode(): String
+
 }
 
 abstract class Attribute {
@@ -58,7 +70,12 @@ abstract class Attribute {
   + setName(name: String): void
   + setType(type: String): void
   + setVisibility(vis: accessSpecifier): void
-  + toCode(): String
+
+}
+
+abstract class Note {
+  - body
+  
 }
 
 abstract class Interface extends Class {}
@@ -70,12 +87,21 @@ enum accessSpecifier {
 }
 
 ' Relations
-Attribute "*" --* "1" Class : possède >
-Method "*" --* "1" Class : possède >
-Interface "*" --o "*" Class : implémente <
-Class "*" --> "1" Class : spécialise >
+Attribute "*" --* "1" Class : possède <
+Method "*" --* "1" Class : possède <
 
-Language "1" o-- "*" Relation
-Language "1" o-- "*" Class
+Relation "*" --* "1" Class : source
+Relation "*" --* "1" Class : destination
+Class --o Relation : f
+
+
+ClassDiagram "*" o-- "*" Class
+
+ClassDiagram ..|> Codable
+Class ..|> Codable
+Method ..|> Codable
+Attribute ..|> Codable
+Relation ..|> Codable
+Note ..|> Codable
 
 @enduml
