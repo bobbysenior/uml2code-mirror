@@ -12,11 +12,11 @@ skinparam class {
 
 package core {
 
-    interface Codable {
+    abstract class CodableElement {
+        - comment: String
         + toCode(): String
     }
 
-    ' Regroupement des éléments structurels
     together {
         abstract class Class {
             - id: int
@@ -48,6 +48,14 @@ package core {
             + setType(type: String): void
             + setVisibility(vis: accessSpecifier): void
         }
+        
+        abstract class Enum {
+          - name: String
+          - elements: String[]
+          +setName(name: String): void
+          +setElements(elements: String[]): void
+        }
+        
     }
 
     enum accessSpecifier {
@@ -57,11 +65,9 @@ package core {
     }
 
     abstract class ClassDiagram {
-        - elements: List
-        + setElements(elements: List): void
+
     }
 
-    ' Hiérarchie des relations
     abstract class Relation {
         - role: String
         - sementics: String
@@ -88,7 +94,6 @@ package core {
 
     abstract class Note {
         - body
-        - target
         + setBody(text: String): void
         + setTarget(target: Class): void
     }
@@ -97,24 +102,24 @@ package core {
 
     ' --- Relations et Mise en page ---
 
-    ' On force Codable en haut
-    ClassDiagram .up.|> Codable
-    Class .up.|> Codable
-    Method .up.|> Codable
-    Attribute .up.|> Codable
-    Relation .up.|> Codable
-    Note .up.|> Codable
+    Class -up-|> CodableElement
+    Method -up-|> CodableElement
+    Attribute -up-|> CodableElement
+    Relation -up-|> CodableElement
+    Note -up-|> CodableElement
+    Enum -up-|> CodableElement
 
     ' Organisation interne de Class
     Attribute "*" --* "1" Class : possède <
     Method "*" --* "1" Class : possède <
 
     ' Relations vers Class
-    Relation "*" *-- "1" Class : source
-    Relation "*" *-- "1" Class : destination
+    Relation "2" --> "2" Class : (source, destination) > 
 
-    ClassDiagram "1" o-- "*" Class
+    ClassDiagram "1" o-- "*" CodableElement
+    
+    Note --> CodableElement : target >
 
-    note left of Codable : Les classes qui implémentent\ncette interface peuvent être\nconverties en code.
+    note left of CodableElement : Les classes qui implémentent\ncette interface peuvent être\nconverties en code.
 }
 @enduml
