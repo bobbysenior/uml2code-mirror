@@ -1,113 +1,170 @@
 @startuml
-
-abstract class Language {
-  - elements: List
-  + setElements(elements: List): void
-  + abstract toCode(): String
+' --- Paramètres esthétiques ---
+skinparam shadowing true
+skinparam roundcorner 10
+skinparam nodesep 20
+skinparam ranksep 20
+skinparam class {
+    BackgroundColor White
+    ArrowColor #263238
+    BorderColor #263238
 }
 
-abstract class Relation {
-  - source: Class
-  - destination: Class
-  - sourceCardinality: String
-  - destinationCardinality: String
-  
-  + setSource(source: Class): void
-  + setDestination(destination: Class): void
-  + setSourceCardinality(cap: String): void
-  + setDestinationCardinality(cap: String): void
-  + abstract toCode(): String
+package core {
+
+    abstract class CodableElement {
+        - comment: String
+        + toCode(): String
+    }
+
+    together {
+        abstract class Class {
+            - id: int
+            - name: String
+            - isAbstract: boolean
+            + setId(id: int): void
+            + setName(name: String): void
+            + setAbstract(isAbstract: boolean): void
+            + addAttribute(attr: Attribute): void
+            + addMethod(meth: Method): void
+        }
+
+        abstract class Method {
+            - name: String
+            - visibility: accessSpecifier
+            - parameters: String[]
+            - returnType: String
+            + setName(name: String): void
+            + setVisibility(vis: accessSpecifier): void
+            + setParameters(p: String[]): void
+            + setReturnType(type: String): void
+        }
+
+        abstract class Attribute {
+            - name: String
+            - type: String
+            - visibility: accessSpecifier
+            + setName(name: String): void
+            + setType(type: String): void
+            + setVisibility(vis: accessSpecifier): void
+        }
+        
+        abstract class Enum {
+          - name: String
+          - elements: String[]
+          +setName(name: String): void
+          +setElements(elements: String[]): void
+        }
+        
+    }
+
+    enum accessSpecifier {
+        PUBLIC
+        PRIVATE
+        PROTECTED
+    }
+
+    abstract class ClassDiagram {
+
+    }
+
+    abstract class Relation {
+        - role: String
+        - sementics: String
+        + setSource(source: Class): void
+        + setDestination(destination: Class): void
+        + setRole(role: String): void
+        + setSemantics(text: String): void
+    }
+
+    abstract class CardinalityRelation extends Relation {
+        - sourceCardinality: String
+        - destinationCardinality: String
+        + setSourceCardinality(cap: String): void
+        + setDestinationCardinality(cap: String): void
+    }
+
+    together {
+        abstract class Generalization extends Relation
+        abstract class Association extends Relation
+        abstract class Implementation extends Relation
+        abstract class Agregation extends CardinalityRelation
+        abstract class Composition extends CardinalityRelation
+    }
+
+    abstract class Note {
+        - body
+        + setBody(text: String): void
+        + setTarget(target: Class): void
+    }
+
+    abstract class Interface extends Class
+
+    ' --- Relations et Mise en page ---
+
+    Class -up-|> CodableElement
+    Method -up-|> CodableElement
+    Attribute -up-|> CodableElement
+    Relation -up-|> CodableElement
+    Note -up-|> CodableElement
+    Enum -up-|> CodableElement
+
+    ' Organisation interne de Class
+    Attribute "*" --* "1" Class : possède <
+    Method "*" --* "1" Class : possède <
+
+    ' Relations vers Class
+    Relation "2" --> "2" Class : (source, destination) > 
+
+    ClassDiagram "1" o-- "*" CodableElement
+    
+    Note --> CodableElement : target >
+
+    note left of CodableElement : Les classes qui implémentent\ncette interface peuvent être\nconverties en code.
 }
-
-abstract class Extension extends Relation {}
-abstract class Dependency extends Relation {}
-abstract class Agregation extends Relation {}
-abstract class Composition extends Relation {}
-
-abstract class Class {
-  - id: int
-  - name: String
-  - isAbstract: boolean
-  
-  + setId(id: int): void
-  + setName(name: String): void
-  + setAbstract(isAbstract: boolean): void
-  + addAttribute(attr: Attribute): void
-  + addMethod(meth: Method): void
-  + toCode(): String
-}
-
-abstract class Method {
-  - name: String
-  - visibility: accessSpecifier
-  - parameters: String[]
-  - returnType: String
-  
-  + setName(name: String): void
-  + setVisibility(vis: accessSpecifier): void
-  + setParameters(p: String[]): void
-  + setReturnType(type: String): void
-  + toCode(): String
-}
-
-abstract class Attribute {
-  - name: String
-  - type: String
-  - visibility: accessSpecifier
-  
-  + setName(name: String): void
-  + setType(type: String): void
-  + setVisibility(vis: accessSpecifier): void
-  + toCode(): String
-}
-
-abstract class Interface extends Class {}
-
-enum accessSpecifier {
-  PUBLIC
-  PRIVATE
-  PROTECTED
-}
-
-' Relations
-Attribute "*" --* "1" Class : possède >
-Method "*" --* "1" Class : possède >
-Interface "*" --o "*" Class : implémente <
-Class "*" --> "1" Class : spécialise >
-
-Language "1" o-- "*" Relation
-Language "1" o-- "*" Class
 
 ' Classes concrètes
-class Java extends Language
-class JavaClass extends Class
-class JavaAttribute extends Attribute
-class JavaMethod extends Method
-class JavaInterface extends Interface
-class JavaDependency extends Dependency
-class JavaAgregation extends Agregation
-class JavaExtension extends Extension
-class JavaComposition extends Composition
+package JavaClassDiagram {
+class Java 
+class JavaClass 
+class JavaAttribute 
+class JavaMethod 
+class JavaInterface 
+class JavaDependency 
+class JavaAgregation 
+class JavaExtension 
+class JavaComposition 
+}
+package CppClassDiagram {
+class Cpp 
+class CppClass 
+class CppAttribute 
+class CppMethod 
+class CppInterface 
+class CppDependency 
+class CppAgregation 
+class CppExtension 
+class CppComposition 
+}
+package PythonClassDiagram {
+class Python 
+class PythonClass 
+class PythonAttribute 
+class PythonMethod 
+class PythonInterface 
+class PythonDependency 
+class PythonAgregation 
+class PythonExtension 
+class PythonComposition 
+}
 
-class Cpp extends Language
-class CppClass extends Class
-class CppAttribute extends Attribute
-class CppMethod extends Method
-class CppInterface extends Interface
-class CppDependency extends Dependency
-class CppAgregation extends Agregation
-class CppExtension extends Extension
-class CppComposition extends Composition
+JavaClassDiagram --+ core
+CppClassDiagram --+ core
+PythonClassDiagram --+ core
 
-class Ruby extends Language
-class RubyClass extends Class
-class RubyAttribute extends Attribute
-class RubyMethod extends Method
-class RubyInterface extends Interface
-class RubyDependency extends Dependency
-class RubyAgregation extends Agregation
-class RubyExtension extends Extension
-class RubyComposition extends Composition
+
+
+
 
 
 @enduml
