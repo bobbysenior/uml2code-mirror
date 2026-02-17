@@ -4,12 +4,13 @@
 #include <string>
 #include <vector>
 
-class Wallet {
-public:
-    void addMoney();
 
+class Wallet {
 private:
     double amount;
+
+public:
+    void addMoney();
 
 };
 

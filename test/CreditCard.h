@@ -4,12 +4,13 @@
 #include <string>
 #include <vector>
 
-class CreditCard : public Wallet, public IPaymentProcessor {
-public:
-    void charge();
 
+class CreditCard {
 private:
     std::string cardNumber;
+
+public:
+    void charge();
 
 };
 

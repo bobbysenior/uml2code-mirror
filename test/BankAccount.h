@@ -4,13 +4,14 @@
 #include <string>
 #include <vector>
 
+
 class BankAccount {
+private:
+    double balance;
+
 public:
     void deposit();
     void withdraw();
-
-private:
-    double balance;
 
 };
 
