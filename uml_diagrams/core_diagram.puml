@@ -1,0 +1,172 @@
+@startuml
+' --- Paramètres esthétiques ---
+skinparam shadowing true
+skinparam roundcorner 10
+skinparam nodesep 60
+skinparam ranksep 80
+skinparam class {
+    BackgroundColor White
+    ArrowColor #263238
+    BorderColor #263238
+}
+
+package core {
+
+    interface Language {
+      + class: Class
+      + attribute: Attribute
+      + method: Method
+      + enum: Enum
+      + interface: Interface
+      + association: Association 
+      + agregation: Agregation 
+      + generalization: Generalization 
+      + composition: Composition 
+    }
+
+    abstract class CodableElement {
+        - id: int
+        - comment: String
+        + toCode(): String
+    }
+    
+    class Package {
+      - id: int
+      +toCode(): String
+    }
+
+    together {
+        abstract class Class {
+            - id: int
+            - name: String
+            - isAbstract: boolean
+            - fileName: String
+            + setId(id: int): void
+            + setName(name: String): void
+            + setAbstract(isAbstract: boolean): void
+            + setFilename(name: String): void
+            + addAttribute(attr: Attribute): void
+            + addMethod(meth: Method): void
+        }
+
+        abstract class Method {
+            - name: String
+            - visibility: accessSpecifier
+            - parameters: String[]
+            - returnType: String
+            + setName(name: String): void
+            + setVisibility(vis: accessSpecifier): void
+            + setParameters(p: String[]): void
+            + setReturnType(type: String): void
+        }
+
+        abstract class Attribute {
+            - name: String
+            - type: String
+            - visibility: accessSpecifier
+            + setName(name: String): void
+            + setType(type: String): void
+            + setVisibility(vis: accessSpecifier): void
+        }
+        
+        abstract class Enum {
+          - name: String
+          - filename: String
+          - elements: String[]
+          +setName(name: String): void
+          +setFilename(name: String): void
+          +setElements(elements: String[]): void
+        }
+        
+    }
+
+    enum accessSpecifier {
+        PUBLIC
+        PRIVATE
+        PROTECTED
+    }
+
+    class ClassDiagram {
+      - id: int
+      + toCode(): String
+    }
+
+    abstract class Relation {
+        - sementics: String
+        + setSource(source: Class): void
+        + setDestination(destination: Class): void
+        + setSemantics(text: String): void
+    }
+
+    abstract class CardinalityRelation extends Relation {
+        - sourceRole: String
+        - sourceCardinality: String
+        - destinationRole: String
+        - destinationCardinality: String
+        + setSourceRole(role: String): void
+        + setSourceCardinality(cap: String): void
+        + setDestinationRole(role: String): void
+        + setDestinationCardinality(cap: String): void
+    }
+
+    together {
+        abstract class Generalization extends Relation
+        abstract class Association extends CardinalityRelation
+        abstract class Implementation extends Relation
+        abstract class Agregation extends CardinalityRelation
+        abstract class Composition extends CardinalityRelation
+    }
+
+    abstract class Note {
+        - body
+        + setBody(text: String): void
+        + setTarget(target: Class): void
+    }
+
+    abstract class Interface extends Class
+
+    ' --- Relations et Mise en page ---
+
+    Class -up-|> CodableElement
+    Method -up-|> CodableElement
+    Attribute -up-|> CodableElement
+    Relation -up-|> CodableElement
+    Note -up-|> CodableElement
+    Enum -up-|> CodableElement
+
+    ' Organisation interne de Class
+    Attribute "*" --* "1" Class : possède <
+    Method "*" --* "1" Class : possède <
+
+
+    Relation "*" --> "2" Class : (source, destination) > 
+
+    ClassDiagram "1" o-- "*" Package
+    Package "1" o-- "*" CodableElement
+
+
+    
+    Note -- CodableElement : target >
+
+    note left of CodableElement : Les classes qui implémentent\ncette interface peuvent être\nconverties en code.
+    note right of Package : Pour le moment, il n'y a qu'un seul\n Package par diagramme. Cette classe \n est là pour prévoir les potentielles \n améliorations futures.
+    note bottom of Attribute
+      * Classe abstraite donne les règles pour représenter
+        un attribut dans les implémentation pour chaque langage.
+      * Agit comme une Factory pour l'instanciation des 
+        implémentations concrètes.
+      * Un attribut est une sorte d'élement modélisable 
+        car il peut être traduit en code.
+      * Un attribut ne peut pas exister seul, il est forcément
+        rattaché à une  classe.
+    end note
+    note bottom of Class
+        * Représenation abstraite et générale d'une classe.
+          Elle sert de "factory" pour créer des classes spécifiques
+          à chaque langage (ex: JavaClass, CppClass, ...).
+        * Elle est composé d'attributs et de méthodes.
+        * Une Class peut avoir des relations.
+        * Une Class est une sorte d'élément modélisable (CodableElement).
+    end note
+}
+@enduml

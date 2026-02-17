@@ -1,0 +1,201 @@
+@startuml
+' --- Paramètres esthétiques ---
+skinparam shadowing true
+skinparam roundcorner 10
+skinparam nodesep 20
+skinparam ranksep 20
+skinparam class {
+    BackgroundColor White
+    ArrowColor #263238
+    BorderColor #263238
+}
+
+package core {
+
+    interface Language {
+      + class: Class
+      + attribute: Attribute
+      + method: Method
+      + enum: Enum
+      + interface: Interface
+      + association: Association 
+      + agregation: Agregation 
+      + generalization: Generalization 
+      + composition: Composition 
+    }
+
+    abstract class CodableElement {
+        - id: int
+        - comment: String
+        + toCode(): String
+    }
+    
+    class Package {
+      - id: int
+      +toCode(): String
+    }
+
+    together {
+        abstract class Class {
+            - id: int
+            - name: String
+            - isAbstract: boolean
+            - fileName: String
+            + setId(id: int): void
+            + setName(name: String): void
+            + setAbstract(isAbstract: boolean): void
+            + setFilename(name: String): void
+            + addAttribute(attr: Attribute): void
+            + addMethod(meth: Method): void
+        }
+
+        abstract class Method {
+            - name: String
+            - visibility: accessSpecifier
+            - parameters: String[]
+            - returnType: String
+            + setName(name: String): void
+            + setVisibility(vis: accessSpecifier): void
+            + setParameters(p: String[]): void
+            + setReturnType(type: String): void
+        }
+
+        abstract class Attribute {
+            - name: String
+            - type: String
+            - visibility: accessSpecifier
+            + setName(name: String): void
+            + setType(type: String): void
+            + setVisibility(vis: accessSpecifier): void
+        }
+        
+        abstract class Enum {
+          - name: String
+          - filename: String
+          - elements: String[]
+          +setName(name: String): void
+          +setFilename(name: String): void
+          +setElements(elements: String[]): void
+        }
+        
+    }
+
+    enum accessSpecifier {
+        PUBLIC
+        PRIVATE
+        PROTECTED
+    }
+
+    class ClassDiagram {
+      - id: int
+      + toCode(): String
+    }
+
+    abstract class Relation {
+        - sementics: String
+        + setSource(source: Class): void
+        + setDestination(destination: Class): void
+        + setSemantics(text: String): void
+    }
+
+    abstract class CardinalityRelation extends Relation {
+        - sourceRole: String
+        - sourceCardinality: String
+        - destinationRole: String
+        - destinationCardinality: String
+        + setSourceRole(role: String): void
+        + setSourceCardinality(cap: String): void
+        + setDestinationRole(role: String): void
+        + setDestinationCardinality(cap: String): void
+    }
+
+    together {
+        abstract class Generalization extends Relation
+        abstract class Association extends CardinalityRelation
+        abstract class Implementation extends Relation
+        abstract class Agregation extends CardinalityRelation
+        abstract class Composition extends CardinalityRelation
+    }
+
+    abstract class Note {
+        - body
+        + setBody(text: String): void
+        + setTarget(target: Class): void
+    }
+
+    abstract class Interface extends Class
+
+    ' --- Relations et Mise en page ---
+
+    Class -up-|> CodableElement
+    Method -up-|> CodableElement
+    Attribute -up-|> CodableElement
+    Relation -up-|> CodableElement
+    Note -up-|> CodableElement
+    Enum -up-|> CodableElement
+
+    ' Organisation interne de Class
+    Attribute "*" --* "1" Class : possède <
+    Method "*" --* "1" Class : possède <
+
+
+    Relation "*" --> "2" Class : (source, destination) > 
+
+    ClassDiagram "1" o-- "*" Package
+    Package "1" o-- "*" CodableElement
+
+
+    
+    Note -- CodableElement : target >
+
+}
+
+' Classes concrètes
+package JavaClassDiagram {
+class Java implements core.Language
+class JavaClass 
+class JavaAttribute 
+class JavaMethod 
+class JavaInterface 
+class JavaAssociation
+class JavaAgregation 
+class JavaGeneralization
+class JavaComposition 
+
+}
+package CppClassDiagram {
+class Cpp implements core.Language
+class CppClass 
+class CppAttribute 
+class CppMethod 
+class CppInterface 
+class CppAssociation
+class CppAgregation 
+class CppGeneralization 
+class CppComposition 
+
+}
+package PythonClassDiagram {
+class Python implements core.Language
+class PythonClass 
+class PythonAttribute 
+class PythonMethod 
+class PythonInterface 
+class PythonAssociation 
+class PythonAgregation 
+class PythonGeneralization
+class PythonComposition 
+
+
+}
+
+JavaClassDiagram --+ core
+CppClassDiagram --+ core
+PythonClassDiagram --+ core
+
+
+
+
+
+
+@enduml
