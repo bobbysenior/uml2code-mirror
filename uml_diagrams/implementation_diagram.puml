@@ -18,9 +18,9 @@ package core {
       + method: Method
       + enum: Enum
       + interface: Interface
-      + dependency: Dependency 
+      + association: Association 
       + agregation: Agregation 
-      + extension: Extension 
+      + generalization: Generalization 
       + composition: Composition 
     }
 
@@ -156,9 +156,9 @@ class JavaClass
 class JavaAttribute 
 class JavaMethod 
 class JavaInterface 
-class JavaDependency 
+class JavaAssociation
 class JavaAgregation 
-class JavaExtension 
+class JavaGeneralization
 class JavaComposition 
 
 }
@@ -168,9 +168,9 @@ class CppClass
 class CppAttribute 
 class CppMethod 
 class CppInterface 
-class CppDependency 
+class CppAssociation
 class CppAgregation 
-class CppExtension 
+class CppGeneralization 
 class CppComposition 
 
 }
@@ -180,9 +180,9 @@ class PythonClass
 class PythonAttribute 
 class PythonMethod 
 class PythonInterface 
-class PythonDependency 
+class PythonAssociation 
 class PythonAgregation 
-class PythonExtension 
+class PythonGeneralization
 class PythonComposition 
 
 

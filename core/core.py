@@ -264,24 +264,17 @@ class ClassDiagram:
     def add_element(self, element: CodableElement) -> None:
         self._elements.append(element)
 
-# --- FACTORY (Nécessaire pour le Parser/Architecture) ---
 
-class ModelFactory(ABC):
+class Language(ABC):
     """
-    Pattern Factory pour créer les éléments (non présent sur le diagramme de données,
-    mais nécessaire à l'architecture du projet uml2code).
+    Interface qui permet à chaque langage de précicer ses structures
     """
-    @abstractmethod
-    def create_class(self, name: str, is_abstract: bool = False) -> Class: pass
-    
-    @abstractmethod
-    def create_interface(self, name: str) -> Interface: pass
-    
-    @abstractmethod
-    def create_enum(self, name: str) -> Enum: pass
-    
-    @abstractmethod
-    def create_attribute(self, name: str, type_name: str, visibility: AccessSpecifier) -> Attribute: pass
-    
-    @abstractmethod
-    def create_method(self, name: str, visibility: AccessSpecifier, return_type: str) -> Method: pass
+    Class = None
+    Attribute
+    Method
+    Enum
+    Interface
+    Association 
+    Agregation 
+    Generalization 
+    Composition 

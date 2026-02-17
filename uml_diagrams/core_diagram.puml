@@ -12,6 +12,18 @@ skinparam class {
 
 package core {
 
+    interface Language {
+      + class: Class
+      + attribute: Attribute
+      + method: Method
+      + enum: Enum
+      + interface: Interface
+      + association: Association 
+      + agregation: Agregation 
+      + generalization: Generalization 
+      + composition: Composition 
+    }
+
     abstract class CodableElement {
         - comment: String
         + toCode(): String
@@ -135,5 +147,15 @@ package core {
 
     note left of CodableElement : Les classes qui implémentent\ncette interface peuvent être\nconverties en code.
     note right of Package : Pour le moment, il n'y a qu'un seul\n Package par diagramme. Cette classe \n est là pour prévoir les potentielles \n améliorations futures.
+    note bottom of Attribute
+      * Classe abstraite donne les règles pour représenter
+        un attribut dans les implémentation pour chaque langage.
+      * Agit comme une Factory pour l'instanciation des 
+        implémentations concrètes.
+      * Un attribut est une sorte d'élement modélisable 
+        car il peut être traduit en code.
+      * Un attribut ne peut pas exister seul, il est forcément
+        rattaché à une  classe.
+    end note
 }
 @enduml
