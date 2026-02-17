@@ -1,0 +1,55 @@
+@startuml
+
+' ===== Classes =====
+class BankAccount {
+    -balance : double
+    +deposit() : void
+    +withdraw() : void
+}
+note right of BankAccount
+  Représente un compte bancaire avec solde et opérations possibles
+end note
+
+class CreditCard {
+    -cardNumber : String
+    +charge() : void
+}
+note right of CreditCard
+  Une carte de crédit
+end note
+
+class Customer {
+    -name : String
+}
+note right of Customer
+  Cette classe contient les informations relatives à un client, telles que le nom et le compte bancaire.
+end note
+
+abstract class Wallet {
+    -amount : double
+    +addMoney() : void
+}
+note right of Wallet
+  Un porte-monnaie abstrait pouvant contenir de l'argent
+end note
+
+interface IPaymentProcessor {
+    +processPayment() : void
+}
+note right of IPaymentProcessor
+  Interface pour les objets pouvant traiter un paiement
+end note
+
+' ===== Héritage =====
+Wallet <|-- CreditCard
+
+' ===== Implémentation d'interface =====
+CreditCard ..|> IPaymentProcessor
+
+' ===== Relations =====
+BankAccount "1..1" --> "0..*" CreditCard : "linked card"        ' association directionnelle
+Customer "1" o-- "1..*" BankAccount : "owns"                    ' agrégation bidirectionnelle
+Customer "1..*" *-- "1" Wallet : "holds"                        ' composition bidirectionnelle
+BankAccount "1..*" -- "1..1" Customer : "primary holder"        ' association bidirectionnelle
+
+@enduml
