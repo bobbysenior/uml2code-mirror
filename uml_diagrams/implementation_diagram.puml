@@ -12,9 +12,25 @@ skinparam class {
 
 package core {
 
+    interface Language {
+      + class: Class
+      + attribute: Attribute
+      + method: Method
+      + enum: Enum
+      + interface: Interface
+      + dependency: Dependency 
+      + agregation: Agregation 
+      + extension: Extension 
+      + composition: Composition 
+    }
+
     abstract class CodableElement {
         - comment: String
         + toCode(): String
+    }
+    
+    class Package {
+      +toCode(): String
     }
 
     together {
@@ -22,9 +38,11 @@ package core {
             - id: int
             - name: String
             - isAbstract: boolean
+            - fileName: String
             + setId(id: int): void
             + setName(name: String): void
             + setAbstract(isAbstract: boolean): void
+            + setFilename(name: String): void
             + addAttribute(attr: Attribute): void
             + addMethod(meth: Method): void
         }
@@ -51,8 +69,10 @@ package core {
         
         abstract class Enum {
           - name: String
+          - filename: String
           - elements: String[]
           +setName(name: String): void
+          +setFilename(name: String): void
           +setElements(elements: String[]): void
         }
         
@@ -65,22 +85,24 @@ package core {
     }
 
     abstract class ClassDiagram {
-
+      + toCode(): String
     }
 
     abstract class Relation {
-        - role: String
         - sementics: String
         + setSource(source: Class): void
         + setDestination(destination: Class): void
-        + setRole(role: String): void
         + setSemantics(text: String): void
     }
 
     abstract class CardinalityRelation extends Relation {
+        - sourceRole: String
         - sourceCardinality: String
+        - destinationRole: String
         - destinationCardinality: String
+        + setSourceRole(role: String): void
         + setSourceCardinality(cap: String): void
+        + setDestinationRole(role: String): void
         + setDestinationCardinality(cap: String): void
     }
 
@@ -113,19 +135,23 @@ package core {
     Attribute "*" --* "1" Class : possède <
     Method "*" --* "1" Class : possède <
 
-    ' Relations vers Class
-    Relation "2" --> "2" Class : (source, destination) > 
 
-    ClassDiagram "1" o-- "*" CodableElement
+    Relation "*" --> "2" Class : (source, destination) > 
+
+    ClassDiagram "1" o-- "*" Package
+    Package "1" o-- "*" CodableElement
+
+
     
-    Note --> CodableElement : target >
+    Note -- CodableElement : target >
 
     note left of CodableElement : Les classes qui implémentent\ncette interface peuvent être\nconverties en code.
+    note right of Package : Pour le moment, il n'y a qu'un seul\n Package par diagramme. Cette classe \n est là pour prévoir les potentielles \n améliorations futures.
 }
 
 ' Classes concrètes
 package JavaClassDiagram {
-class Java 
+class Java implements core.Language
 class JavaClass 
 class JavaAttribute 
 class JavaMethod 
@@ -134,9 +160,10 @@ class JavaDependency
 class JavaAgregation 
 class JavaExtension 
 class JavaComposition 
+
 }
 package CppClassDiagram {
-class Cpp 
+class Cpp implements core.Language
 class CppClass 
 class CppAttribute 
 class CppMethod 
@@ -145,9 +172,10 @@ class CppDependency
 class CppAgregation 
 class CppExtension 
 class CppComposition 
+
 }
 package PythonClassDiagram {
-class Python 
+class Python implements core.Language
 class PythonClass 
 class PythonAttribute 
 class PythonMethod 
@@ -156,6 +184,8 @@ class PythonDependency
 class PythonAgregation 
 class PythonExtension 
 class PythonComposition 
+
+
 }
 
 JavaClassDiagram --+ core
