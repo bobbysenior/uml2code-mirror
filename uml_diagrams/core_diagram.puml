@@ -25,11 +25,13 @@ package core {
     }
 
     abstract class CodableElement {
+        - id: int
         - comment: String
         + toCode(): String
     }
     
     class Package {
+      - id: int
       +toCode(): String
     }
 
@@ -84,7 +86,8 @@ package core {
         PROTECTED
     }
 
-    abstract class ClassDiagram {
+    class ClassDiagram {
+      - id: int
       + toCode(): String
     }
 
@@ -108,7 +111,7 @@ package core {
 
     together {
         abstract class Generalization extends Relation
-        abstract class Association extends Relation
+        abstract class Association extends CardinalityRelation
         abstract class Implementation extends Relation
         abstract class Agregation extends CardinalityRelation
         abstract class Composition extends CardinalityRelation
@@ -156,6 +159,14 @@ package core {
         car il peut être traduit en code.
       * Un attribut ne peut pas exister seul, il est forcément
         rattaché à une  classe.
+    end note
+    note bottom of Class
+        * Représenation abstraite et générale d'une classe.
+          Elle sert de "factory" pour créer des classes spécifiques
+          à chaque langage (ex: JavaClass, CppClass, ...).
+        * Elle est composé d'attributs et de méthodes.
+        * Une Class peut avoir des relations.
+        * Une Class est une sorte d'élément modélisable (CodableElement).
     end note
 }
 @enduml

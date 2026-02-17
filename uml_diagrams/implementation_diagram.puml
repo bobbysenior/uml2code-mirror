@@ -25,11 +25,13 @@ package core {
     }
 
     abstract class CodableElement {
+        - id: int
         - comment: String
         + toCode(): String
     }
     
     class Package {
+      - id: int
       +toCode(): String
     }
 
@@ -84,7 +86,8 @@ package core {
         PROTECTED
     }
 
-    abstract class ClassDiagram {
+    class ClassDiagram {
+      - id: int
       + toCode(): String
     }
 
@@ -108,7 +111,7 @@ package core {
 
     together {
         abstract class Generalization extends Relation
-        abstract class Association extends Relation
+        abstract class Association extends CardinalityRelation
         abstract class Implementation extends Relation
         abstract class Agregation extends CardinalityRelation
         abstract class Composition extends CardinalityRelation
@@ -145,8 +148,6 @@ package core {
     
     Note -- CodableElement : target >
 
-    note left of CodableElement : Les classes qui implémentent\ncette interface peuvent être\nconverties en code.
-    note right of Package : Pour le moment, il n'y a qu'un seul\n Package par diagramme. Cette classe \n est là pour prévoir les potentielles \n améliorations futures.
 }
 
 ' Classes concrètes
