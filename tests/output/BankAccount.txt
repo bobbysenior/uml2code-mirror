@@ -1,0 +1,7 @@
+class BankAccount {
+public:
+    void deposit();
+    void withdraw();
+private:
+    double balance;
+};
