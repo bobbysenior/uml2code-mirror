@@ -12,7 +12,9 @@ end note
 
 class CreditCard {
     -cardNumber : String
+    -coucou : int
     +charge() : void
+    +pay(customer : Customer, amount : int) : void
 }
 note right of CreditCard
   Une carte de crédit
@@ -41,15 +43,15 @@ note right of IPaymentProcessor
 end note
 
 ' ===== Héritage =====
-Wallet <|-- CreditCard
+CreditCard --|> Wallet
 
 ' ===== Implémentation d'interface =====
 CreditCard ..|> IPaymentProcessor
 
 ' ===== Relations =====
-BankAccount "1..1" --> "0..*" CreditCard : "linked card"        ' association directionnelle
-Customer "1" o-- "1..*" BankAccount : "owns"                    ' agrégation bidirectionnelle
-Customer "1..*" *-- "1" Wallet : "holds"                        ' composition bidirectionnelle
-BankAccount "1..*" -- "1..1" Customer : "primary holder"        ' association bidirectionnelle
+BankAccount  -->  CreditCard : "linked card"        ' association directionnelle
+Customer  o--  BankAccount : "owns"                    ' agrégation bidirectionnelle
+Customer  *--  Wallet : "holds"                        ' composition bidirectionnelle
+BankAccount  --  Customer : "primary holder"        ' association bidirectionnelle
 
 @enduml

@@ -20,9 +20,14 @@ class CppMethod(Method):
 class CppClass(Class):
     def toCode(self) -> str:
         lines = []
-        lines.append(f"class {self._name} {{")
+        
+        # 1. Gestion de la déclaration de la classe avec ou sans héritage
+        if hasattr(self, '_parent') and self._parent:
+            lines.append(f"class {self._name} : public {self._parent} {{")
+        else:
+            lines.append(f"class {self._name} {{")
 
-        # En C++, on regroupe par visibilité
+        # 2. En C++, on regroupe par visibilité
         for vis in [accessSpecifier.PUBLIC, accessSpecifier.PROTECTED, accessSpecifier.PRIVATE]:
             # On filtre les attributs et méthodes pour la visibilité courante
             attrs = [a for a in self._attributes if a._visibility == vis]
@@ -127,3 +132,7 @@ class Cpp(Language):
     @property
     def Composition(self) -> type[CppComposition]:
         return CppComposition
+    
+    @property
+    def file_extension(self) -> str:
+        return "cpp"
