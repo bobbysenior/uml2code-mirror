@@ -1,4 +1,4 @@
-class CreditCard {
+class CreditCard : public IPaymentProcessor {
 public:
     void charge();
     void pay(customer : Customer, amount : int);

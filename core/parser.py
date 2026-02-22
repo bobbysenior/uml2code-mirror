@@ -89,38 +89,86 @@ class PlantUMLParser:
             self._parse_members(line)
             return
 
-        # 5. Détection des Relations
-        # Gère les cardinalités ("1", "*") et les directions de flèches (-up-|>, --*)
-        relation_match = re.search(r"(\w+)(?:\s+\".*?\")?\s+([<*o|]?-[a-zA-Z\-]*[|>o*]?)\s+(?:\".*?\")?\s+(\w+)", line)
+        # 5. Détection des Relations (Approche séparée et claire)
         
-        if relation_match:
-            source_name = relation_match.group(1)
-            raw_arrow = relation_match.group(2)
-            dest_name = relation_match.group(3)
+        # --- Étape A : Nettoyage de la ligne ---
+        clean_line = line.split(':')[0]                 # 1. Retire la description à la fin (ex: : "linked card")
+        clean_line = re.sub(r'"[^"]*"', '', clean_line) # 2. Retire les cardinalités (ex: "1", "*")
+        
+        # --- Étape B : Extraction basique (Mot Flèche Mot) ---
+        # On cherche uniquement les caractères autorisés dans une flèche UML : < > * o | - .
+        # Et on autorise des mots au milieu pour les directions (ex: -up-)
+        match = re.search(r"(\w+)\s+([<>*o|\-.]+(?:[a-zA-Z]+[<>*o|\-.]+)?)\s+(\w+)", clean_line)
+        
+        if not match:
+            return # Ce n'est pas une relation
             
-            # Nettoyage de la flèche : on enlève les mots de direction (ex: "-up-|>" devient "--|>")
-            clean_arrow = re.sub(r'[a-zA-Z]+', '', raw_arrow)
+        source_name = match.group(1)
+        raw_arrow = match.group(2)
+        dest_name = match.group(3)
+        
+        # --- Étape C : Nettoyage de la flèche ---
+        # On supprime les éventuelles directions (ex: -up-|> devient --|>)
+        clean_arrow = re.sub(r'[a-zA-Z]+', '', raw_arrow)
+        relation_type = None
+        
+        # --- Étape D : Aiguillage explicite ---
+        if clean_arrow in ("--|>", "..|>"):
+            relation_type = clean_arrow
             
-            # Gestion des flèches inversées (ex: A --* B équivaut à B *-- A)
-            if clean_arrow == "--*":
-                clean_arrow = "*--"
-                source_name, dest_name = dest_name, source_name
-            elif clean_arrow == "--o":
-                clean_arrow = "o--"
-                source_name, dest_name = dest_name, source_name
-            elif clean_arrow == "<--":
-                clean_arrow = "-->"
-                source_name, dest_name = dest_name, source_name
-            elif clean_arrow == "<|--":
-                clean_arrow = "--|>"
-                source_name, dest_name = dest_name, source_name
+        elif clean_arrow in ("<|--", "<|.."): # Généralisation inversée
+            relation_type = "--|>" if "-" in clean_arrow else "..|>"
+            source_name, dest_name = dest_name, source_name
+            
+        elif clean_arrow == "*--":
+            relation_type = "*--"
+            
+        elif clean_arrow == "--*": # Composition inversée
+            relation_type = "*--"
+            source_name, dest_name = dest_name, source_name
+            
+        elif clean_arrow == "o--":
+            relation_type = "o--"
+            
+        elif clean_arrow == "--o": # Agrégation inversée
+            relation_type = "o--"
+            source_name, dest_name = dest_name, source_name
+            
+        elif clean_arrow in ("-->", "..>"):
+            relation_type = clean_arrow
+            
+        elif clean_arrow in ("<--", "<.."): # Association directionnelle inversée
+            relation_type = "-->" if "-" in clean_arrow else "..>"
+            source_name, dest_name = dest_name, source_name
+            
+        elif clean_arrow in ("--", ".."): # Association bidirectionnelle
+            relation_type = "--"
+            
+        else:
+            return # Flèche non reconnue (sécurité)
 
-            source_class = self.elements_map.get(source_name)
-            dest_class = self.elements_map.get(dest_name)
+        # --- Étape E : Auto-création et liaison ---
+        if source_name not in self.elements_map:
+            new_c = self.language.Class()
+            new_c.setName(source_name)
+            self.elements_map[source_name] = new_c
+            self.default_package._elements.append(new_c)
             
-            if source_class and dest_class:
-                print(f"Relation détectée : {source_class._name} {clean_arrow} {dest_class._name}")
-                self._create_relation(source_class, dest_class, clean_arrow)
+        if dest_name not in self.elements_map:
+            # Si on implémente (..|>), la destination est sûrement une interface
+            if relation_type == "..|>":
+                new_c = self.language.Interface()
+            else:
+                new_c = self.language.Class()
+            new_c.setName(dest_name)
+            self.elements_map[dest_name] = new_c
+            self.default_package._elements.append(new_c)
+            
+        source_class = self.elements_map.get(source_name)
+        dest_class = self.elements_map.get(dest_name)
+        
+        print(f"Relation détectée : {source_class._name} {relation_type} {dest_class._name}")
+        self._create_relation(source_class, dest_class, relation_type)
 
     def _parse_members(self, line: str) -> None:
         """Parse les attributs et méthodes au sein d'une classe."""
@@ -162,19 +210,16 @@ class PlantUMLParser:
         return accessSpecifier.PUBLIC
 
     def _create_relation(self, source: Class, dest: Class, relation_type: str) -> None:
-        """Instancie la bonne relation selon le symbole PlantUML et met à jour les classes."""
+        """Instancie la bonne relation selon le symbole PlantUML."""
         relation = None
-        if relation_type == "--|>":
+        
+        # Héritage ou Implémentation d'interface
+        if relation_type in ("--|>", "..|>"):
             relation = self.language.Generalization()
-            # Héritage : Ce n'est pas un attribut classique.
-            # On ajoute dynamiquement une propriété `_parent` à la classe source.
-            # (Il faudra que ta méthode toCode() l'utilise pour générer 'class A : public B')
             source._parent = dest._name
             
         elif relation_type == "*--":
             relation = self.language.Composition()
-            # Composition : La classe source (le composite) est responsable du cycle de vie de la destination.
-            # On lui ajoute un attribut privé.
             rel_attribute = self.language.Attribute()
             rel_attribute.setName(f"composed_{dest._name.lower()}")
             rel_attribute.setType(dest._name)
@@ -183,22 +228,37 @@ class PlantUMLParser:
             
         elif relation_type == "o--":
             relation = self.language.Agregation()
-            # Agrégation : La classe source contient une référence vers la destination.
             rel_attribute = self.language.Attribute()
             rel_attribute.setName(f"ref_{dest._name.lower()}")
-            rel_attribute.setType(dest._name) # Dans un cas réel C++, ça pourrait être un pointeur ou une référence
+            rel_attribute.setType(dest._name)
             rel_attribute.setVisibility(accessSpecifier.PRIVATE)
             source.addAttribute(rel_attribute)
             
-        elif relation_type == "-->":
+        # Association directionnelle
+        elif relation_type in ("-->", "..>"):
             relation = self.language.Association()
             rel_attribute = self.language.Attribute()
             rel_attribute.setName("relation" + str(self.rel_counter))
             rel_attribute.setType(dest._name)
             source.addAttribute(rel_attribute)
-            # Incrémentation du compteur pour éviter les doublons de noms
             self.rel_counter += 1 
             
+        # Association bidirectionnelle (Attributs chez la source ET la destination)
+        elif relation_type == "--":
+            relation = self.language.Association()
+            
+            rel_attr_src = self.language.Attribute()
+            rel_attr_src.setName(f"linked_{dest._name.lower()}_{self.rel_counter}")
+            rel_attr_src.setType(dest._name)
+            source.addAttribute(rel_attr_src)
+            
+            rel_attr_dest = self.language.Attribute()
+            rel_attr_dest.setName(f"linked_{source._name.lower()}_{self.rel_counter}")
+            rel_attr_dest.setType(source._name)
+            dest.addAttribute(rel_attr_dest)
+            
+            self.rel_counter += 1
+
         if relation:
             relation.setSource(source)
             relation.setDestination(dest)
