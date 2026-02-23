@@ -61,6 +61,11 @@ class Language(ABC):
     def Composition(self) -> type['Composition']:
         pass
 
+    @property
+    @abstractmethod
+    def file_extension(self) -> str:
+        pass
+
 class CodableElement(ABC):
     def __init__(self):
         self._id: int = 0

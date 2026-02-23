@@ -90,7 +90,7 @@ def main():
                 if code_content:
                     # L'extension du fichier devrait idéalement être gérée par le langage (ex: .cpp, .h, .java)
                     # Pour l'instant, on utilise une extension générique ou le nom brut si le langage ne la gère pas
-                    filepath = os.path.join(args.output, f"{element._name}.txt") 
+                    filepath = os.path.join(args.output, f"{element._name}.{language_instance.file_extension}") 
                     
                     with open(filepath, 'w', encoding='utf-8') as f:
                         f.write(code_content)

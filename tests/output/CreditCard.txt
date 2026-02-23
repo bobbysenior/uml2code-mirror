@@ -1,6 +1,0 @@
-class CreditCard {
-public:
-    void charge();
-private:
-    String cardNumber;
-};

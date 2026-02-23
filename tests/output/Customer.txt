@@ -1,4 +1,0 @@
-class Customer {
-private:
-    String name;
-};
