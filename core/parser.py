@@ -1,3 +1,17 @@
+"""
+Module:       core.parser
+Project:      uml2code
+Author:       Thomas MEZINO
+AI Assistant: Gemini 3.1 Pro (Google)
+License:      GPL3.0
+
+Description:
+    Analyseur lexical et syntaxique pour les fichiers PlantUML. Il lit le diagramme, 
+    identifie les éléments UML et les instancie dans le modèle abstrait en utilisant la factory du langage choisi.
+
+Dependencies:
+    - core.core
+"""
 import re
 from typing import Dict, List, Optional
 from core.core import Language, ClassDiagram, Package, accessSpecifier, Class

@@ -1,3 +1,17 @@
+"""
+Module:       JavaClassDiagram
+Project:      uml2code
+Author:       Reichmann Galy
+AI Assistant: Claude Opus 4.6 (Anthropic)
+License:      GPL3.0
+
+Description:
+    Implémentation concrète de l'Abstract Factory pour le langage Java. Traduit le modèle UML en code Java 
+    en distinguant notamment l'héritage (extends) et l'implémentation d'interfaces (implements).
+
+Dependencies:
+    - core.core
+"""
 from core.core import (
     Language, Class, Attribute, Method, Enum, Interface,
     Association, Agregation, Generalization, Composition, accessSpecifier

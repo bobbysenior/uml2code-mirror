@@ -1,3 +1,17 @@
+"""
+Module:       CppClassDiagram
+Project:      uml2code
+Author:       Thomas MEZINO
+AI Assistant: Gemini 3.1 Pro (Google)
+License:      GPL3.0
+
+Description:
+    Implémentation concrète de l'Abstract Factory pour le langage C++. Génère le code source C++ 
+    en gérant les spécificités comme l'héritage multiple, les destructeurs virtuels et les interfaces.
+
+Dependencies:
+    - core.core
+"""
 from core.core import (
     Language, Class, Attribute, Method, Enum, Interface,
     Association, Agregation, Generalization, Composition, accessSpecifier

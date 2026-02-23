@@ -1,3 +1,17 @@
+"""
+Module:       core.core
+Project:      uml2code
+Author:       Thomas MEZINO, Reichmann GALY, Yaële GUILLIER
+AI Assistant: Gemini 3.1 Pro (Google)
+License:      GPL3.0
+
+Description:
+    Contient l'Arbre Syntaxique Abstrait (AST) et définit le Design Pattern Abstract Factory. 
+    Fournit les classes de base (Class, Method, Attribute, etc.) que les générateurs spécifiques doivent implémenter.
+
+Dependencies:
+    - [Aucune dépendance externe]
+"""
 from abc import ABC, abstractmethod
 from enum import Enum as PyEnum
 from typing import List, Optional

@@ -1,3 +1,17 @@
+"""
+Module:       PythonClassDiagram
+Project:      uml2code
+Author:       Yaële GUILLIER
+AI Assistant: Gemini 3.1 Pro (Google)
+License:      GPL3.0
+
+Description:
+    Implémentation concrète de l'Abstract Factory pour le langage Python. Génère le code Python en utilisant 
+    le module 'abc' pour les classes abstraites et en gérant l'héritage multiple.
+
+Dependencies:
+    - core.core
+"""
 from typing import List
 from core.core import (
     Language, Class, Method, Attribute, Enum, Interface,

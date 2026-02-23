@@ -1,3 +1,20 @@
+"""
+Module:       uml2code
+Project:      uml2code
+Author:       Thomas MEZINO
+AI Assistant: Gemini 3.1 Pro (Google)
+License:      GPL3.0
+
+Description:
+    Point d'entrée principal en ligne de commande. Il orchestre l'analyse du 
+    fichier PlantUML via le parser et génère le code en appelant la factory du langage cible.
+
+Usage:
+    python uml2code.py -l <Langage> -o <Dossier_Sortie> <Fichier_Entree.puml>
+
+Dependencies:
+    - [Aucune dépendance externe, utilise argparse de la bibliothèque standard]
+"""
 import argparse
 import sys
 import os
