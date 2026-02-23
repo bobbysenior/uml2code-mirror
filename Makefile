@@ -1,5 +1,5 @@
 # Variables make it easy to update paths later
-PY = python
+PY = python3
 SCRIPT = uml2code.py
 INPUT = tests/model.puml
 OUT_DIR = tests/output
