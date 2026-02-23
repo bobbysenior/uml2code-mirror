@@ -52,15 +52,42 @@ class PythonMethod(Method):
 
 class PythonClass(Class):
     def toCode(self) -> str:
-        code = f"class {self._name}:\n"
+        code = ""
+        bases = []
+        
+        # 1. Gestion des classes abstraites
+        is_abstract = hasattr(self, 'is_abstract') and self.is_abstract
+        if is_abstract:
+            code += "from abc import ABC\n\n"
+            bases.append("ABC")
+            
+        # 2. Gestion de l'héritage (_parent) et de l'implémentation (_implements)
+        if hasattr(self, '_parent') and self._parent:
+            bases.append(self._parent)
+        if hasattr(self, '_implements') and self._implements:
+            bases.append(self._implements)
+            
+        # 3. Déclaration de la classe (Héritage multiple possible en Python)
+        if bases:
+            code += f"class {self._name}({', '.join(bases)}):\n"
+        else:
+            code += f"class {self._name}:\n"
+            
+        # 4. Constructeur et Attributs
         code += "    def __init__(self):\n"
+        if hasattr(self, '_parent') and self._parent:
+            code += f"        super().__init__()\n" # Appel du constructeur parent
+            
         if not self._attributes:
-             code += "        pass\n"
+            if not (hasattr(self, '_parent') and self._parent):
+                code += "        pass\n"
         else:
             for attr in self._attributes:
                 code += f"{attr.toCode()}\n"
                 
         code += "\n"
+        
+        # 5. Méthodes
         if self._methods:
             for method in self._methods:
                 code += f"{method.toCode()}\n"
@@ -93,13 +120,28 @@ class PythonEnum(Enum):
 # --- Relations (Simplifiées pour le moment) ---
 
 class PythonAssociation(Association):
-    def toCode(self) -> str: return f"# Association"
+    def toCode(self) -> str:
+        src  = self._source._name if self._source else "?"
+        dest = self._destination._name if self._destination else "?"
+        return f"# Association : {src} --> {dest}"
+
 class PythonAgregation(Agregation):
-    def toCode(self) -> str: return f"# Agrégation"
+    def toCode(self) -> str:
+        src  = self._source._name if self._source else "?"
+        dest = self._destination._name if self._destination else "?"
+        return f"# Agrégation : {src} o--> {dest}"
+
 class PythonComposition(Composition):
-    def toCode(self) -> str: return f"# Composition"
+    def toCode(self) -> str:
+        src  = self._source._name if self._source else "?"
+        dest = self._destination._name if self._destination else "?"
+        return f"# Composition : {src} *--> {dest}"
+
 class PythonGeneralization(Generalization):
-    def toCode(self) -> str: return f"# Héritage"
+    def toCode(self) -> str:
+        src  = self._source._name if self._source else "?"
+        dest = self._destination._name if self._destination else "?"
+        return f"# Héritage / Implémentation : {src} --> {dest}"
 
 # --- La "Factory" attendue par ton Main ---
 
@@ -126,3 +168,5 @@ class Python(Language):
     def Generalization(self) -> type[Generalization]: return PythonGeneralization
     @property
     def Composition(self) -> type[Composition]: return PythonComposition
+    @property
+    def file_extension(self) -> str: return "py"
