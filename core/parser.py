@@ -211,12 +211,15 @@ class PlantUMLParser:
 
     def _create_relation(self, source: Class, dest: Class, relation_type: str) -> None:
         """Instancie la bonne relation selon le symbole PlantUML."""
-        relation = None
-        
-        # Héritage ou Implémentation d'interface
-        if relation_type in ("--|>", "..|>"):
+        # 1. Héritage classique (extends en Java, public parent en C++)
+        if relation_type == "--|>":
             relation = self.language.Generalization()
             source._parent = dest._name
+            
+        # 2. Implémentation d'interface (implements en Java, public interface en C++)
+        elif relation_type == "..|>":
+            relation = self.language.Generalization()
+            source._implements = dest._name
             
         elif relation_type == "*--":
             relation = self.language.Composition()

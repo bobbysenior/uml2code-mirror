@@ -21,30 +21,57 @@ class CppClass(Class):
     def toCode(self) -> str:
         lines = []
         
-        # 1. Gestion de la déclaration de la classe avec ou sans héritage
+        # 1. Gestion de l'héritage et de l'implémentation (Héritage multiple possible en C++)
+        inheritances = []
         if hasattr(self, '_parent') and self._parent:
-            lines.append(f"class {self._name} : public {self._parent} {{")
+            inheritances.append(f"public {self._parent}")
+        if hasattr(self, '_implements') and self._implements:
+            inheritances.append(f"public {self._implements}")
+            
+        if inheritances:
+            lines.append(f"class {self._name} : {', '.join(inheritances)} {{")
         else:
             lines.append(f"class {self._name} {{")
 
-        # 2. En C++, on regroupe par visibilité
+        # 2. Visibilités et attributs/méthodes
         for vis in [accessSpecifier.PUBLIC, accessSpecifier.PROTECTED, accessSpecifier.PRIVATE]:
-            # On filtre les attributs et méthodes pour la visibilité courante
             attrs = [a for a in self._attributes if a._visibility == vis]
             meths = [m for m in self._methods if m._visibility == vis]
             
-            if attrs or meths:
-                # Ajoute le modificateur d'accès (ex: "public:")
+            # Vérifie s'il faut ajouter un destructeur virtuel (uniquement dans la section publique)
+            is_public = (vis == accessSpecifier.PUBLIC)
+            needs_virtual_dtor = hasattr(self, 'is_abstract') and self.is_abstract and is_public
+            
+            if attrs or meths or needs_virtual_dtor:
                 lines.append(f"{vis.value.lower()}:")
                 
-                # Ajoute les attributs
+                # Ajout du destructeur virtuel pour les classes abstraites
+                if needs_virtual_dtor:
+                    lines.append(f"    virtual ~{self._name}() = default;")
+                
                 for a in attrs:
                     lines.append(f"    {a.toCode()}")
-                
-                # Ajoute les méthodes
                 for m in meths:
                     lines.append(f"    {m.toCode()}")
 
+        lines.append("};")
+        return "\n".join(lines)
+
+
+class CppInterface(Interface):
+    def toCode(self) -> str:
+        lines = []
+        lines.append(f"class {self._name} {{")
+        lines.append("public:")
+        # Une interface en C++ a toujours besoin d'un destructeur virtuel
+        lines.append(f"    virtual ~{self._name}() = default;")
+        
+        # Toutes les méthodes deviennent des méthodes virtuelles pures (= 0)
+        for m in self._methods:
+            ret = m._returnType or "void"
+            args = ", ".join(m._parameters) if m._parameters else ""
+            lines.append(f"    virtual {ret} {m._name}({args}) = 0;")
+            
         lines.append("};")
         return "\n".join(lines)
 
@@ -53,19 +80,6 @@ class CppEnum(Enum):
         lines = [f"enum class {self._name} {{"]
         if self._elements:
             lines.append("    " + ",\n    ".join(self._elements))
-        lines.append("};")
-        return "\n".join(lines)
-
-class CppInterface(Interface):
-    def toCode(self) -> str:
-        lines = [f"class {self._name} {{", "public:", f"    virtual ~{self._name}() = default;"]
-        
-        # Toutes les méthodes d'une interface C++ doivent être des virtuelles pures
-        for m in self._methods:
-            params = ", ".join(m._parameters) if m._parameters else ""
-            ret_type = m._returnType if m._returnType else "void"
-            lines.append(f"    virtual {ret_type} {m._name}({params}) = 0;")
-            
         lines.append("};")
         return "\n".join(lines)
 
