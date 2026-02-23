@@ -45,10 +45,16 @@ class JavaAttribute(Attribute):
 
 
 class JavaMethod(Method):
+    def _convert_param(self, param: str) -> str:
+        if ':' in param:
+            name, typ = [p.strip() for p in param.split(':', 1)]
+            return f"{typ} {name}"
+        return param
+
     def toCode(self) -> str:
         keyword = get_visibility(self._visibility)
         ret     = self._returnType or "void"
-        args    = ", ".join(self._parameters) if self._parameters else ""
+        args    = ", ".join(self._convert_param(p) for p in self._parameters) if self._parameters else ""
         body    = "\n        // TODO: à implémenter\n    "
         return f"{keyword} {ret} {self._name}({args}) {{{body}}}"
 
@@ -114,10 +120,16 @@ class JavaEnum(Enum):
 
 
 class JavaInterface(Interface):
+    def _convert_param(self, param: str) -> str:
+        if ':' in param:
+            name, typ = [p.strip() for p in param.split(':', 1)]
+            return f"{typ} {name}"
+        return param
+
     def toCode(self) -> str:
         output = [f"public interface {self._name} {{"]
         for meth in self._methods:
-            args = ", ".join(meth._parameters) if meth._parameters else ""
+            args = ", ".join(self._convert_param(p) for p in meth._parameters) if meth._parameters else ""
             ret  = meth._returnType or "void"
             output.append(f"    {ret} {meth._name}({args});")
         output.append("}")
