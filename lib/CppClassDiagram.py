@@ -1,145 +1,166 @@
-from core.core import *
-from typing import List
+"""
+Module:       CppClassDiagram
+Project:      uml2code
+Author:       Thomas MEZINO
+AI Assistant: Gemini 3.1 Pro (Google)
+License:      GPL3.0
 
-# --- Utilitaires de mappage C++ ---
-def map_visibility(vis: AccessSpecifier) -> str:
-    if vis == AccessSpecifier.PUBLIC: return "public"
-    if vis == AccessSpecifier.PRIVATE: return "private"
-    if vis == AccessSpecifier.PROTECTED: return "protected"
-    return "public" # default
+Description:
+    Implémentation concrète de l'Abstract Factory pour le langage C++. Génère le code source C++ 
+    en gérant les spécificités comme l'héritage multiple, les destructeurs virtuels et les interfaces.
 
-def map_type(type_name: str) -> str:
-    # Gestion des listes génériques venant du parser
-    if type_name.startswith("List<"):
-        inner_type = type_name[5:-1] # extrait 'T' de 'List<T>'
-        return f"std::vector<{inner_type}*>" 
-    
-    # Types primitifs
-    if type_name.lower() in ["string", "str"]: return "std::string"
-    if type_name.lower() == "int": return "int"
-    if type_name.lower() == "double": return "double"
-    if type_name.lower() == "boolean": return "bool"
-    if type_name.lower() == "void": return "void"
-    
-    # Par défaut, on assume que c'est une autre classe -> pointeur
-    return f"{type_name}*" 
+Dependencies:
+    - core.core
+"""
+from core.core import (
+    Language, Class, Attribute, Method, Enum, Interface,
+    Association, Agregation, Generalization, Composition, accessSpecifier
+)
 
-# --- Classes Spécifiques C++ ---
+# --- Spécialisation des éléments et implémentation de toCode() ---
 
 class CppAttribute(Attribute):
-    def to_code(self) -> str:
-        return f"    {map_type(self._type)} {self._name};"
+    def toCode(self) -> str:
+        # Génère une ligne du type : int monAttribut;
+        return f"{self._type} {self._name};"
 
 class CppMethod(Method):
-    def to_code(self) -> str:
-        # Transformation des paramètres "nom:type" en "Type nom"
-        params_list = []
-        for p in self._parameters:
-            if ':' in p:
-                p_name, p_type = p.split(':')
-                params_list.append(f"{map_type(p_type.strip())} {p_name.strip()}")
-            else:
-                # Fallback si pas de type
-                params_list.append(f"int {p.strip()}")
-
-        params_code = ", ".join(params_list)
-        return f"    {map_type(self._return_type)} {self._name}({params_code});"
+    def toCode(self) -> str:
+        # Génère une ligne du type : void maMethode(int p1, string p2);
+        params = ", ".join(self._parameters) if self._parameters else ""
+        ret_type = self._returnType if self._returnType else "void"
+        return f"{ret_type} {self._name}({params});"
 
 class CppClass(Class):
-    def to_code(self) -> str:
+    def toCode(self) -> str:
         lines = []
-        guard = self._name.upper() + "_H"
-        lines.append(f"#ifndef {guard}")
-        lines.append(f"#define {guard}")
-        lines.append("")
         
-        lines.append("#include <string>")
-        lines.append("#include <vector>")
-        
-        for parent in self._parents:
-            lines.append(f'#include "{parent}.h"')
+        # 1. Gestion de l'héritage et de l'implémentation (Héritage multiple possible en C++)
+        inheritances = []
+        if hasattr(self, '_parent') and self._parent:
+            inheritances.append(f"public {self._parent}")
+        if hasattr(self, '_implements') and self._implements:
+            inheritances.append(f"public {self._implements}")
             
-        lines.append("")
+        if inheritances:
+            lines.append(f"class {self._name} : {', '.join(inheritances)} {{")
+        else:
+            lines.append(f"class {self._name} {{")
 
-        # Forward declarations
-        declared_classes = set()
-        for attr in self._attributes:
-            clean_type = attr._type.replace("List<", "").replace(">", "")
-            if clean_type.lower() not in ["int", "double", "float", "string", "void", "bool"]:
-                if clean_type != self._name and clean_type not in declared_classes:
-                    lines.append(f"class {clean_type};")
-                    declared_classes.add(clean_type)
-        
-        lines.append("")
-
-        inheritance = ""
-        if self._parents:
-            inheritance = " : " + ", ".join([f"public {p}" for p in self._parents])
-        
-        lines.append(f"class {self._name}{inheritance} {{")
-        
-        for vis in [AccessSpecifier.PRIVATE, AccessSpecifier.PROTECTED, AccessSpecifier.PUBLIC]:
-            filtered_attrs = [a for a in self._attributes if a._visibility == vis]
-            filtered_meths = [m for m in self._methods if m._visibility == vis]
+        # 2. Visibilités et attributs/méthodes
+        for vis in [accessSpecifier.PUBLIC, accessSpecifier.PROTECTED, accessSpecifier.PRIVATE]:
+            attrs = [a for a in self._attributes if a._visibility == vis]
+            meths = [m for m in self._methods if m._visibility == vis]
             
-            if filtered_attrs or filtered_meths:
-                lines.append(f"{map_visibility(vis)}:")
-                for a in filtered_attrs:
-                    lines.append(a.to_code())
-                for m in filtered_meths:
-                    lines.append(m.to_code())
-                lines.append("")
-        
+            # Vérifie s'il faut ajouter un destructeur virtuel (uniquement dans la section publique)
+            is_public = (vis == accessSpecifier.PUBLIC)
+            needs_virtual_dtor = hasattr(self, 'is_abstract') and self.is_abstract and is_public
+            
+            if attrs or meths or needs_virtual_dtor:
+                lines.append(f"{vis.value.lower()}:")
+                
+                # Ajout du destructeur virtuel pour les classes abstraites
+                if needs_virtual_dtor:
+                    lines.append(f"    virtual ~{self._name}() = default;")
+                
+                for a in attrs:
+                    lines.append(f"    {a.toCode()}")
+                for m in meths:
+                    lines.append(f"    {m.toCode()}")
+
         lines.append("};")
-        lines.append("")
-        lines.append(f"#endif // {guard}")
         return "\n".join(lines)
 
+
 class CppInterface(Interface):
-    def to_code(self) -> str:
+    def toCode(self) -> str:
         lines = []
-        guard = self._name.upper() + "_H"
-        lines.append(f"#ifndef {guard}")
-        lines.append(f"#define {guard}")
-        lines.append("")
-        lines.append("#include <string>") # Au cas où
-        lines.append("")
         lines.append(f"class {self._name} {{")
         lines.append("public:")
-        lines.append(f"    virtual ~{self._name}() {{}}") 
+        # Une interface en C++ a toujours besoin d'un destructeur virtuel
+        lines.append(f"    virtual ~{self._name}() = default;")
         
+        # Toutes les méthodes deviennent des méthodes virtuelles pures (= 0)
         for m in self._methods:
-            # CORRECTION ICI : Utilisation de m._parameters au lieu de self._parameters
-            params_list = []
-            for p in m._parameters:
-                if ':' in p:
-                    p_name, p_type = p.split(':')
-                    params_list.append(f"{map_type(p_type.strip())} {p_name.strip()}")
-                else:
-                    params_list.append(f"int {p.strip()}")
-            
-            params_code = ", ".join(params_list)
-            
-            # Méthode virtuelle pure
-            lines.append(f"    virtual {map_type(m._return_type)} {m._name}({params_code}) = 0;")
+            ret = m._returnType or "void"
+            args = ", ".join(m._parameters) if m._parameters else ""
+            lines.append(f"    virtual {ret} {m._name}({args}) = 0;")
             
         lines.append("};")
-        lines.append(f"#endif // {guard}")
         return "\n".join(lines)
 
 class CppEnum(Enum):
-    def to_code(self) -> str:
-        lines = []
-        guard = self._name.upper() + "_H"
-        lines.append(f"#ifndef {guard}")
-        lines.append(f"#define {guard}")
-        lines.append("")
-        lines.append(f"enum class {self._name} {{")
-        # Extraction du nom depuis la ligne brute (parfois le parser envoie "VAL" ou "VAL,")
-        clean_elements = [e.replace(',', '').strip() for e in self._elements]
-        for i, elem in enumerate(clean_elements):
-            comma = "," if i < len(clean_elements) - 1 else ""
-            lines.append(f"    {elem}{comma}")
+    def toCode(self) -> str:
+        lines = [f"enum class {self._name} {{"]
+        if self._elements:
+            lines.append("    " + ",\n    ".join(self._elements))
         lines.append("};")
-        lines.append(f"#endif // {guard}")
         return "\n".join(lines)
+
+# --- Spécialisation des relations ---
+# Pour un premier jet, on peut les traduire sous forme de commentaires 
+# dans le code ou préparer le terrain pour des "#include" futurs.
+
+class CppAssociation(Association):
+    def toCode(self) -> str:
+        return f"// Association : {self._source._name if self._source else '?'} -> {self._destination._name if self._destination else '?'}"
+
+class CppAgregation(Agregation):
+    def toCode(self) -> str:
+        return f"// Agrégation : {self._source._name if self._source else '?'} o-- {self._destination._name if self._destination else '?'}"
+
+class CppGeneralization(Generalization):
+    def toCode(self) -> str:
+        return f"// Héritage : {self._source._name if self._source else '?'} hérite de {self._destination._name if self._destination else '?'}"
+
+class CppComposition(Composition):
+    def toCode(self) -> str:
+        return f"// Composition : {self._source._name if self._source else '?'} *-- {self._destination._name if self._destination else '?'}"
+
+# --- Implémentation de l'interface Language (Abstract Factory) ---
+
+class Cpp(Language):
+    """
+    Factory concrète pour le langage C++.
+    Respecte la nouvelle interface avec les propriétés en majuscule.
+    """
+    
+    @property
+    def Class(self) -> type[CppClass]:
+        return CppClass
+
+    @property
+    def Attribute(self) -> type[CppAttribute]:
+        return CppAttribute
+
+    @property
+    def Method(self) -> type[CppMethod]:
+        return CppMethod
+
+    @property
+    def Enum(self) -> type[CppEnum]:
+        return CppEnum
+
+    @property
+    def Interface(self) -> type[CppInterface]:
+        return CppInterface
+
+    @property
+    def Association(self) -> type[CppAssociation]:
+        return CppAssociation
+
+    @property
+    def Agregation(self) -> type[CppAgregation]:
+        return CppAgregation
+
+    @property
+    def Generalization(self) -> type[CppGeneralization]:
+        return CppGeneralization
+
+    @property
+    def Composition(self) -> type[CppComposition]:
+        return CppComposition
+    
+    @property
+    def file_extension(self) -> str:
+        return "cpp"

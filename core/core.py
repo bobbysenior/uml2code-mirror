@@ -1,280 +1,258 @@
-from __future__ import annotations
+"""
+Module:       core.core
+Project:      uml2code
+Author:       Thomas MEZINO, Reichmann GALY, Yaële GUILLIER
+AI Assistant: Gemini 3.1 Pro (Google)
+License:      GPL3.0
+
+Description:
+    Contient l'Arbre Syntaxique Abstrait (AST) et définit le Design Pattern Abstract Factory. 
+    Fournit les classes de base (Class, Method, Attribute, etc.) que les générateurs spécifiques doivent implémenter.
+
+Dependencies:
+    - [Aucune dépendance externe]
+"""
 from abc import ABC, abstractmethod
 from enum import Enum as PyEnum
 from typing import List, Optional
 
-# --- Enums (Conforme au diagramme) ---
+# --- Enums ---
 
-class AccessSpecifier(PyEnum):
-    PUBLIC = "+"
-    PRIVATE = "-"
-    PROTECTED = "#"
-    # PACKAGE = "~" # Ajouté par nécessité pratique pour le parser, bien que non explicite sur le diagramme
+class accessSpecifier(PyEnum):
+    PUBLIC = "PUBLIC"
+    PRIVATE = "PRIVATE"
+    PROTECTED = "PROTECTED"
 
-# --- Base Abstraite ---
+# --- Interfaces & Abstract Classes ---
+
+class Language(ABC):
+    """
+    Interface faisant le pont entre le parser et les implémentations spécifiques des langages.
+    Chaque propriété retourne le type/la classe concrète à instancier.
+    """
+    @property
+    @abstractmethod
+    def Class(self) -> type['Class']:
+        pass
+
+    @property
+    @abstractmethod
+    def Attribute(self) -> type['Attribute']:
+        pass
+
+    @property
+    @abstractmethod
+    def Method(self) -> type['Method']:
+        pass
+
+    @property
+    @abstractmethod
+    def Enum(self) -> type['Enum']:
+        pass
+
+    @property
+    @abstractmethod
+    def Interface(self) -> type['Interface']:
+        pass
+
+    @property
+    @abstractmethod
+    def Association(self) -> type['Association']:
+        pass
+
+    @property
+    @abstractmethod
+    def Agregation(self) -> type['Agregation']:
+        pass
+
+    @property
+    @abstractmethod
+    def Generalization(self) -> type['Generalization']:
+        pass
+
+    @property
+    @abstractmethod
+    def Composition(self) -> type['Composition']:
+        pass
+
+    @property
+    @abstractmethod
+    def file_extension(self) -> str:
+        pass
 
 class CodableElement(ABC):
-    """
-    Correspond à abstract class CodableElement
-    """
-    def __init__(self, comment: str = ""):
-        self._comment: str = comment
+    def __init__(self):
+        self._id: int = 0
+        self._comment: str = ""
 
     @abstractmethod
-    def to_code(self) -> str:
-        """+ toCode(): String"""
+    def toCode(self) -> str:
         pass
 
-# --- Composants de Classe ---
+# --- Core Elements ---
 
-class Attribute(CodableElement):
-    """
-    Correspond à abstract class Attribute
-    """
-    def __init__(self, name: str = "", type_name: str = "", visibility: AccessSpecifier = AccessSpecifier.PUBLIC):
-        super().__init__()
-        self._name: str = name
-        self._type: str = type_name
-        self._visibility: AccessSpecifier = visibility
+class Package:
+    def __init__(self):
+        self._id: int = 0
+        self._elements: List[CodableElement] = [] # Package "1" o-- "*" CodableElement
 
-    # + setName(name: String): void
-    def set_name(self, name: str) -> None:
-        self._name = name
-
-    # + setType(type: String): void
-    def set_type(self, type_name: str) -> None:
-        self._type = type_name
-
-    # + setVisibility(vis: accessSpecifier): void
-    def set_visibility(self, vis: AccessSpecifier) -> None:
-        self._visibility = vis
-
-    def to_code(self) -> str:
+    def toCode(self) -> str:
         pass
 
-class Method(CodableElement):
-    """
-    Correspond à abstract class Method
-    """
-    def __init__(self, name: str = "", visibility: AccessSpecifier = AccessSpecifier.PUBLIC, 
-                 parameters: List[str] = None, return_type: str = "void"):
-        super().__init__()
-        self._name: str = name
-        self._visibility: AccessSpecifier = visibility
-        self._parameters: List[str] = parameters if parameters else []
-        self._return_type: str = return_type
+class ClassDiagram:
+    def __init__(self):
+        self._id: int = 0
+        self._packages: List[Package] = [] # ClassDiagram "1" o-- "*" Package
 
-    # + setName(name: String): void
-    def set_name(self, name: str) -> None:
-        self._name = name
-
-    # + setVisibility(vis: accessSpecifier): void
-    def set_visibility(self, vis: AccessSpecifier) -> None:
-        self._visibility = vis
-
-    # + setParameters(p: String[]): void
-    def set_parameters(self, p: List[str]) -> None:
-        self._parameters = p
-
-    # + setReturnType(type: String): void
-    def set_return_type(self, type_name: str) -> None:
-        self._return_type = type_name
-
-    def to_code(self) -> str:
+    def toCode(self) -> str:
         pass
 
-# --- Structures de Données ---
+# --- Modélisation détaillée ---
 
 class Class(CodableElement):
-    """
-    Correspond à abstract class Class
-    """
-    def __init__(self, id_num: int = 0, name: str = "", is_abstract: bool = False):
+    def __init__(self):
         super().__init__()
-        self._id: int = id_num
-        self._name: str = name
-        self._is_abstract: bool = is_abstract
-        
-        # Relations de composition définies dans le diagramme :
-        # Attribute "*" --* "1" Class
-        # Method "*" --* "1" Class
-        self._attributes: List[Attribute] = []
-        self._methods: List[Method] = []
-        
-        # Champs techniques (hors diagramme visuel mais nécessaires pour la génération de code via parser)
-        self._parents: List[str] = [] 
-        self._includes: List[str] = []
+        self._id: int = 0
+        self._name: str = ""
+        self._isAbstract: bool = False
+        self._fileName: str = ""
+        self._attributes: List['Attribute'] = [] # Attribute "*" --* "1" Class
+        self._methods: List['Method'] = []       # Method "*" --* "1" Class
 
-    # + setId(id: int): void
-    def set_id(self, id_num: int) -> None:
-        self._id = id_num
+    def setId(self, id: int) -> None:
+        self._id = id
 
-    # + setName(name: String): void
-    def set_name(self, name: str) -> None:
+    def setName(self, name: str) -> None:
         self._name = name
 
-    # + setAbstract(isAbstract: boolean): void
-    def set_abstract(self, is_abstract: bool) -> None:
-        self._is_abstract = is_abstract
+    def setAbstract(self, isAbstract: bool) -> None:
+        self._isAbstract = isAbstract
 
-    # + addAttribute(attr: Attribute): void
-    def add_attribute(self, attr: Attribute) -> None:
+    def setFilename(self, name: str) -> None:
+        self._fileName = name
+
+    def addAttribute(self, attr: 'Attribute') -> None:
         self._attributes.append(attr)
 
-    # + addMethod(meth: Method): void
-    def add_method(self, meth: Method) -> None:
+    def addMethod(self, meth: 'Method') -> None:
         self._methods.append(meth)
 
-    # Méthodes utilitaires pour le parser/générateur (Implémentation technique)
-    def add_parent(self, parent_name: str) -> None:
-        self._parents.append(parent_name)
-    
-    def add_include(self, include_name: str) -> None:
-        if include_name not in self._includes:
-            self._includes.append(include_name)
-
-    def to_code(self) -> str:
-        pass
-
-class Interface(Class):
-    """
-    Correspond à abstract class Interface extends Class
-    """
-    def to_code(self) -> str:
-        pass
-
-class Enum(CodableElement):
-    """
-    Correspond à abstract class Enum
-    """
-    def __init__(self, name: str = "", elements: List[str] = None):
+class Method(CodableElement):
+    def __init__(self):
         super().__init__()
-        self._name: str = name
-        self._elements: List[str] = elements if elements else []
+        self._name: str = ""
+        self._visibility: accessSpecifier = accessSpecifier.PUBLIC
+        self._parameters: List[str] = []
+        self._returnType: str = ""
 
-    # + setName(name: String): void
-    def set_name(self, name: str) -> None:
+    def setName(self, name: str) -> None:
         self._name = name
 
-    # + setElements(elements: String[]): void
-    def set_elements(self, elements: List[str]) -> None:
+    def setVisibility(self, vis: accessSpecifier) -> None:
+        self._visibility = vis
+
+    def setParameters(self, p: List[str]) -> None:
+        self._parameters = p
+
+    def setReturnType(self, type: str) -> None:
+        self._returnType = type
+
+class Attribute(CodableElement):
+    def __init__(self):
+        super().__init__()
+        self._name: str = ""
+        self._type: str = ""
+        self._visibility: accessSpecifier = accessSpecifier.PUBLIC
+
+    def setName(self, name: str) -> None:
+        self._name = name
+
+    def setType(self, type_: str) -> None:
+        self._type = type_
+
+    def setVisibility(self, vis: accessSpecifier) -> None:
+        self._visibility = vis
+
+class Enum(CodableElement):
+    def __init__(self):
+        super().__init__()
+        self._name: str = ""
+        self._filename: str = ""
+        self._elements: List[str] = []
+
+    def setName(self, name: str) -> None:
+        self._name = name
+
+    def setFilename(self, name: str) -> None:
+        self._filename = name
+
+    def setElements(self, elements: List[str]) -> None:
         self._elements = elements
 
-    # Helper pour le parser
-    def add_element(self, element: str) -> None:
-        self._elements.append(element)
+class Interface(Class):
+    pass
 
-    def to_code(self) -> str:
-        pass
+class Note(CodableElement):
+    def __init__(self):
+        super().__init__()
+        self._body: str = ""
+        self._target: Optional[CodableElement] = None # Note -- CodableElement : target >
+
+    def setBody(self, text: str) -> None:
+        self._body = text
+
+    def setTarget(self, target: CodableElement) -> None:
+        self._target = target
 
 # --- Relations ---
 
 class Relation(CodableElement):
-    """
-    Correspond à abstract class Relation
-    """
     def __init__(self):
         super().__init__()
-        self._role: str = ""
-        self._semantics: str = "" # Note: sementics dans le diagramme, corrigé en semantics
-        self._source: Optional[Class] = None
-        self._destination: Optional[Class] = None
+        self._semantics: str = ""
+        self._source: Optional[Class] = None      # Relation "*" --> "2" Class
+        self._destination: Optional[Class] = None # Relation "*" --> "2" Class
 
-    # + setSource(source: Class): void
-    def set_source(self, source: Class) -> None:
+    def setSource(self, source: Class) -> None:
         self._source = source
 
-    # + setDestination(destination: Class): void
-    def set_destination(self, destination: Class) -> None:
+    def setDestination(self, destination: Class) -> None:
         self._destination = destination
 
-    # + setRole(role: String): void
-    def set_role(self, role: str) -> None:
-        self._role = role
-
-    # + setSemantics(text: String): void
-    def set_semantics(self, text: str) -> None:
+    def setSemantics(self, text: str) -> None:
         self._semantics = text
 
-    def to_code(self) -> str:
-        pass
-
 class CardinalityRelation(Relation):
-    """
-    Correspond à abstract class CardinalityRelation extends Relation
-    """
     def __init__(self):
         super().__init__()
-        self._source_cardinality: str = ""
-        self._destination_cardinality: str = ""
+        self._sourceRole: str = ""
+        self._sourceCardinality: str = ""
+        self._destinationRole: str = ""
+        self._destinationCardinality: str = ""
 
-    # + setSourceCardinality(cap: String): void
-    def set_source_cardinality(self, cap: str) -> None:
-        self._source_cardinality = cap
+    def setSourceRole(self, role: str) -> None:
+        self._sourceRole = role
 
-    # + setDestinationCardinality(cap: String): void
-    def set_destination_cardinality(self, cap: str) -> None:
-        self._destination_cardinality = cap
+    def setSourceCardinality(self, cap: str) -> None:
+        self._sourceCardinality = cap
 
-# Relations concrètes définies dans le package "together"
-class Generalization(Relation): pass
-class Association(Relation): pass
-class Implementation(Relation): pass
+    def setDestinationRole(self, role: str) -> None:
+        self._destinationRole = role
 
-class Agregation(CardinalityRelation): pass
-class Composition(CardinalityRelation): pass
+    def setDestinationCardinality(self, cap: str) -> None:
+        self._destinationCardinality = cap
 
-# --- Documentation et Conteneur ---
+class Generalization(Relation):
+    pass
 
-class Note(CodableElement):
-    """
-    Correspond à abstract class Note
-    """
-    def __init__(self, body: str = ""):
-        super().__init__()
-        self._body: str = body
-        self._target: Optional[CodableElement] = None
+class Implementation(Relation):
+    pass
 
-    # + setBody(text: String): void
-    def set_body(self, text: str) -> None:
-        self._body = text
+class Association(CardinalityRelation):
+    pass
 
-    # + setTarget(target: Class): void
-    # Le diagramme dit setTarget(target: Class) mais la relation visuelle pointe vers CodableElement.
-    # On utilise CodableElement pour plus de flexibilité (note sur methode ou classe).
-    def set_target(self, target: CodableElement) -> None:
-        self._target = target
+class Agregation(CardinalityRelation):
+    pass
 
-    def to_code(self) -> str:
-        pass
-
-class ClassDiagram:
-    """
-    Correspond à abstract class ClassDiagram
-    Aggrège CodableElement (*)
-    """
-    def __init__(self):
-        self._elements: List[CodableElement] = []
-
-    # Helper pour l'accès public (property pythonique) ou via méthode
-    @property
-    def elements(self) -> List[CodableElement]:
-        return self._elements
-
-    def add_element(self, element: CodableElement) -> None:
-        self._elements.append(element)
-
-
-class Language(ABC):
-    """
-    Interface qui permet à chaque langage de précicer ses structures
-    """
-    Class = None
-    Attribute
-    Method
-    Enum
-    Interface
-    Association 
-    Agregation 
-    Generalization 
-    Composition 
+class Composition(CardinalityRelation):
+    pass
